@@ -292,24 +292,26 @@ public class ContactsinfoActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 //        return super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.menu_contactsinfo,menu);
+        getMenuInflater().inflate(R.menu.menu_contactsinfo, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.action_blacklist:
-            {
                 return true;
-            }
             case R.id.action_addtag:
-            {
                 return true;
-            }
+            case R.id.action_SMS:
+                Intent intent = new Intent(ContactsinfoActivity.this, ComfortMsgActivity.class);
+                intent.putExtra("phone", curr_contact.getNumber());
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
         }
-        return super.onOptionsItemSelected(item);
     }
 
     //    private void applyPalette(Palette palette) {

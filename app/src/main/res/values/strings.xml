@@ -98,4 +98,5 @@
     <string name="contacts">联系人</string>
     <string name="yellow_page">黄页</string>
     <string name="title_activity_contactsinfo">ContactsinfoActivity</string>
+    <string name="title_activity_comfort_msg">ComfortMsgActivity</string>
 </resources>
