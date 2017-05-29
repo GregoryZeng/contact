@@ -201,7 +201,17 @@ public class ContactsinfoActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         id = intent.getIntExtra("name", id);
-        curr_contact = db.find(id);
+
+        if (id == 0) {
+            curr_contact = new Contacts();
+            curr_contact.setName("aaa");
+            curr_contact.setNumber("123");
+            curr_contact.setEmail("aa@aa");
+            Toast.makeText(ContactsinfoActivity.this, "=0", Toast.LENGTH_LONG).show();
+        } else {
+            curr_contact = db.find(id);
+        }
+
         Log.d("Greg", curr_contact.getName());
         Log.d("Greg", curr_contact.getNumber());
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);

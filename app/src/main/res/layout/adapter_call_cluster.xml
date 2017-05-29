@@ -5,11 +5,11 @@
     android:layout_height="74dp"
     android:background="@android:color/white"
     android:orientation="horizontal"
-    android:id="@+id/mLayout"
+    android:id="@+id/mLayout_cluster"
     >
 
     <com.thinkcool.circletextimageview.CircleTextImageView
-        android:id="@+id/mUserPhoto"
+        android:id="@+id/mUserPhoto_cluster"
         android:layout_width="37dp"
         android:layout_height="37dp"
         android:layout_gravity="center_vertical"
@@ -23,7 +23,7 @@
 
 
     <LinearLayout
-        android:layout_width="146dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="14dp"
@@ -31,7 +31,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/mName"
+            android:id="@+id/mName_cluster"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -42,7 +42,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/mNumber"
+            android:id="@+id/mNumber_cluster"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -55,7 +55,7 @@
             android:textSize="11sp" />
 
         <TextView
-            android:id="@+id/mTime"
+            android:id="@+id/mTime_cluster"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -66,14 +66,6 @@
             android:textSize="11sp" />
 
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/Contact_info"
-        android:layout_width="56dp"
-        android:layout_height="51dp"
-        android:layout_gravity="center_vertical"
-        android:background="@android:color/white"
-        app:srcCompat="@android:drawable/ic_dialog_info" />
 
 
 </LinearLayout>

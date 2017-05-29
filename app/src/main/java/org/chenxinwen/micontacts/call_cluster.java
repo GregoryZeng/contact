@@ -29,7 +29,7 @@ public class call_cluster extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         Call_for_one adapter=new Call_for_one(EntityList);
         recyclerView.setAdapter(adapter);
-        Toast.makeText(this,"you click view"+EntityList.size(),Toast.LENGTH_SHORT).show();
+
     }
 
 }

@@ -27,14 +27,13 @@ public class Call_for_one extends RecyclerView.Adapter<Call_for_one.MyViewHolder
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final MyViewHolder holder = new MyViewHolder(LayoutInflater.from(
-                parent.getContext()).inflate(R.layout.adapter_call, parent,
+                parent.getContext()).inflate(R.layout.adapter_call_cluster, parent,
                 false));
         holder.recyclerview2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 int position=holder.getAdapterPosition();
                 RecordEntity enti=recordEntityList.get(position);
-                Toast.makeText(v.getContext(),"you click view"+enti.getNumber(),Toast.LENGTH_SHORT).show();
             }
         });
         return holder;
@@ -123,11 +122,11 @@ public class Call_for_one extends RecyclerView.Adapter<Call_for_one.MyViewHolder
         public MyViewHolder(View view) {
             super(view);
             recyclerview2=view;
-            mLayout = (LinearLayout) view.findViewById(R.id.mLayout);
-            mUserPhoto = (CircleTextImageView) view.findViewById(R.id.mUserPhoto);
-            mName = (TextView) view.findViewById(R.id.mName);
-            mNumber = (TextView) view.findViewById(R.id.mNumber);
-            mTime = (TextView) view.findViewById(R.id.mTime);
+            mLayout = (LinearLayout) view.findViewById(R.id.mLayout_cluster);
+            mUserPhoto = (CircleTextImageView) view.findViewById(R.id.mUserPhoto_cluster);
+            mName = (TextView) view.findViewById(R.id.mName_cluster);
+            mNumber = (TextView) view.findViewById(R.id.mNumber_cluster);
+            mTime = (TextView) view.findViewById(R.id.mTime_cluster);
         }
     }
 }

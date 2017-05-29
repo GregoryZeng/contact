@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -81,19 +83,22 @@ public class CallFragment extends Fragment {
     }
 
     private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 1;
-
+    private static final int CALL_PHONE_PERMISSIONS_REQUEST = 2;
+    private static int globlePositon;
     private void checkPermission() {
         //版本判断
         if (Build.VERSION.SDK_INT >= 23) {
             //减少是否拥有权限
             int checkCallPhonePermission = ContextCompat.checkSelfPermission(getActivity(),
                     Manifest.permission.READ_CALL_LOG);
+
             if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
                 // Show our own UI to explain to the user why we need to read the contacts
                 // before actually requesting the permission and showing the default UI
 
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.READ_CALL_LOG}, READ_CONTACTS_PERMISSIONS_REQUEST);
+
 
             } else {
                 initRecord();
@@ -116,7 +121,16 @@ public class CallFragment extends Fragment {
             } else {
                 Toast.makeText(getActivity(), "Read Contacts permission denied", Toast.LENGTH_SHORT).show();
             }
-        } else {
+        }
+        else if (requestCode == CALL_PHONE_PERMISSIONS_REQUEST) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                call(globlePositon);
+                return;
+            } else {
+                Toast.makeText(getActivity(), "Read call phone denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
@@ -196,7 +210,13 @@ public class CallFragment extends Fragment {
 
 
     }
-
+    private  void call(int position){
+        RecordEntity enti = recordEntityList.get(position);
+        String phone = enti.getNumber();
+        Intent intent2 = new Intent(Intent.ACTION_CALL);//创建一个意图对象，用来激发拨号的Activity
+        intent2.setData(Uri.parse("tel:" + phone));
+        startActivity(intent2);
+    }
 
     class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.MyViewHolder> {
 
@@ -217,14 +237,14 @@ public class CallFragment extends Fragment {
 //                }
 //            });
 
-            holder.recyclerview2.setOnClickListener(new View.OnClickListener(){
+
+            holder.InfoButton.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
                     int position=holder.getAdapterPosition();
                     RecordEntity enti=recordEntityList.get(position);
-                    Intent intent=new Intent(getActivity(),call_cluster.class);
+                    Intent intent=new Intent(getActivity(),ContactsinfoActivity.class);
                     String phoneNumber=enti.getNumber();
-                    Toast.makeText(v.getContext(),"you go",Toast.LENGTH_SHORT).show();
                     List<RecordEntity> myList = new ArrayList<>();
                     for (int j = 0; j < recordEntityList.size(); j++) {
 
@@ -233,10 +253,42 @@ public class CallFragment extends Fragment {
                     }
 
                     intent.putExtra("List",(Serializable) myList);
-
-
+                    intent.putExtra("PhoneNumber",phoneNumber);
                     startActivity(intent);
-                    Toast.makeText(v.getContext(),"you click view"+enti.getNumber(),Toast.LENGTH_SHORT).show();
+                }
+            });
+            holder.recyclerview2.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    int position=holder.getAdapterPosition();
+                    globlePositon=position;
+                    if (ContextCompat.checkSelfPermission(getActivity(),
+                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                        // 没有获得授权，申请授权
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
+                                Manifest.permission.CALL_PHONE)) {
+                            // 返回值：
+//                          如果app之前请求过该权限,被用户拒绝, 这个方法就会返回true.
+//                          如果用户之前拒绝权限的时候勾选了对话框中”Don’t ask again”的选项,那么这个方法会返回false.
+//                          如果设备策略禁止应用拥有这条权限, 这个方法也返回false.
+                            // 弹窗需要解释为何需要该权限，再次请求授权
+                            Toast.makeText(v.getContext(), "请授权！", Toast.LENGTH_LONG).show();
+//
+//                            // 帮跳转到该应用的设置界面，让用户手动授权
+//                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+//                            Uri uri = Uri.fromParts("package", "org.chenxinwen.micontacts.fragment;", null);
+//                            intent.setData(uri);
+//                            startActivity(intent);
+                        } else {
+                            // 不需要解释为何需要该权限，直接请求授权
+                            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CALL_PHONE},CALL_PHONE_PERMISSIONS_REQUEST );
+                        }
+                    } else {
+                        // 已经获得授权，可以打电
+
+                        call(globlePositon);
+
+                    }
                 }
             });
             return holder;
@@ -319,7 +371,7 @@ public class CallFragment extends Fragment {
             TextView mName;
             TextView mNumber;
             TextView mTime;
-
+            ImageButton InfoButton;
             public MyViewHolder(View view) {
                 super(view);
                 recyclerview2=view;
@@ -328,6 +380,7 @@ public class CallFragment extends Fragment {
                 mName = (TextView) view.findViewById(R.id.mName);
                 mNumber = (TextView) view.findViewById(R.id.mNumber);
                 mTime = (TextView) view.findViewById(R.id.mTime);
+                InfoButton=(ImageButton) view.findViewById(R.id.Contact_info);
             }
         }
     }
