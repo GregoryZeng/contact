@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ContactsinfoActivity">
+    <item android:id="@+id/action_addtag"
+        android:title="Add a Tag"
+        app:showAsAction="never"/>
+    <item android:id="@+id/action_blacklist"
+        android:title="Blacklist"
+        app:showAsAction="never"/>
+</menu>

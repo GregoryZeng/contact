@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -51,11 +53,12 @@ public class ContactsinfoActivity extends AppCompatActivity {
     private Contacts curr_contact;
     private TextView phone_tv;
     private TextView email_tv;
-    private int id=0;
+    private int id = 0;
     final int UPDATE_LOCATION = 0;
     final int UPDATE_WEATHER = 1;
 
     private String cityText = "";
+
     private String getStringFromInputStream(InputStream is) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -73,7 +76,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d("Greg","getloc begins");
+                Log.d("Greg", "getloc begins");
                 if (phoneNumStr.length() == 11) {
                     StringBuilder buf = new StringBuilder("http://sj.apidata.cn/?mobile=");
                     buf.append(phoneNumStr);
@@ -102,12 +105,12 @@ public class ContactsinfoActivity extends AppCompatActivity {
                         } else
                             Toast.makeText(ContactsinfoActivity.this, "GET提交失败", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
-                        Log.d("Greg","getloc exceptions");
+                        Log.d("Greg", "getloc exceptions");
                         e.printStackTrace();
                     } finally {
-                        Log.d("Greg","getloc disconnect");
+                        Log.d("Greg", "getloc disconnect");
                         if (conn != null) {
-                            Log.d("Greg","conn is not null");
+                            Log.d("Greg", "conn is not null");
                             conn.disconnect();
                         }
                     }
@@ -137,7 +140,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
                         msgObj.add(weatherText);
                         msgObj.add(weatherTemp);
                         Message message = new Message();
-                        message.what =UPDATE_WEATHER;
+                        message.what = UPDATE_WEATHER;
                         message.obj = msgObj;
                         handler.sendMessage(message);
                     } else
@@ -165,7 +168,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
             }
             if (msg.what == UPDATE_WEATHER) {
                 List<String> msgList = (List<String>) msg.obj;
-                weatherText.setText(msgList.get(0) + "  " + msgList.get(1) +"℃");
+                weatherText.setText(msgList.get(0) + "  " + msgList.get(1) + "℃");
             }
 
         }
@@ -175,8 +178,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
     private DBnew db = new DBnew(this);
     private KJBitmap kjb = new KJBitmap();
 
-    private void refresh()
-    {
+    private void refresh() {
         // db.
         curr_contact = db.find(id);
         collapsingToolbarLayout.setTitle(curr_contact.getName());
@@ -184,6 +186,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
         phone_tv.setText(curr_contact.getNumber().toString());
         email_tv.setText(curr_contact.getEmail());
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -194,22 +197,22 @@ public class ContactsinfoActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // Fetch contact info from db and set phone number and email
-        Intent intent=getIntent();
+        Intent intent = getIntent();
 
-        id=intent.getIntExtra("name",id);
+        id = intent.getIntExtra("name", id);
         curr_contact = db.find(id);
-        Log.d("Greg",curr_contact.getName());
-        Log.d("Greg",curr_contact.getNumber());
-        collapsingToolbarLayout = (CollapsingToolbarLayout)findViewById(R.id.collapsing_toolbar);
+        Log.d("Greg", curr_contact.getName());
+        Log.d("Greg", curr_contact.getNumber());
+        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbarLayout.setTitle(curr_contact.getName());
-        phone_tv = (TextView)findViewById(R.id.phone_NUM);
+        phone_tv = (TextView) findViewById(R.id.phone_NUM);
         phone_tv.setText(curr_contact.getNumber().toString());
-        email_tv = (TextView)findViewById(R.id.email_STR);
-        Log.d("Greg mail",""+curr_contact.getEmail().length());
-        Log.d("Greg mail","ends");
+        email_tv = (TextView) findViewById(R.id.email_STR);
+        Log.d("Greg mail", "" + curr_contact.getEmail().length());
+        Log.d("Greg mail", "ends");
         email_tv.setText(curr_contact.getEmail());
         // Set Photo
-        Log.d("Greg photo",curr_contact.getUrl());
+        Log.d("Greg photo", curr_contact.getUrl());
         image = (ImageView) findViewById(R.id.image);
         kjb.displayWithLoadBitmap(image, curr_contact.getUrl(), R.drawable.default_head_rect);
 
@@ -230,44 +233,46 @@ public class ContactsinfoActivity extends AppCompatActivity {
 //        });
 
         // Fetch Location & Weather info
-        phoneNumStr=curr_contact.getNumber();
-        weatherText=(TextView)findViewById(R.id.weather);
-        locationText=(TextView)findViewById(R.id.location);
+        phoneNumStr = curr_contact.getNumber();
+        weatherText = (TextView) findViewById(R.id.weather);
+        locationText = (TextView) findViewById(R.id.location);
         getLocation();
 
         //init Edit fab
-        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 // Intent intent = new Intent(MainActivity.this, AddNewContact.class);
                 //startActivity(intent);
                 Intent intent = new Intent(ContactsinfoActivity.this, EditContactsinfoActivity.class);
-                intent.putExtra("id",curr_contact.getId());
-                startActivityForResult(intent,1);
+                intent.putExtra("id", curr_contact.getId());
+                startActivityForResult(intent, 1);
 //                ContactsFragment.instance.refreshData();
             }
 
         });
 
-        Button blacklist = (Button)findViewById(R.id.BlacklistOp);
+        Button blacklist = (Button) findViewById(R.id.BlacklistOp);
         blacklist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                Toast.makeText(ContactsinfoActivity.this,"Added To Blacklist!",Toast.LENGTH_LONG).show();
+                Toast.makeText(ContactsinfoActivity.this, "Added To Blacklist!", Toast.LENGTH_LONG).show();
             }
 
         });
     }
+
     @Override
-    public void finish()
-    {
-        Intent intent =new Intent();
-        setResult(ADD_CONTACT_RESULT_CODE,intent);
+    public void finish() {
+        Intent intent = new Intent();
+        setResult(ADD_CONTACT_RESULT_CODE, intent);
         super.finish();
 
     }
-    private static final int ADD_CONTACT_RESULT_CODE=1;
+
+    private static final int ADD_CONTACT_RESULT_CODE = 1;
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent Intent_data) {
         switch (resultCode) {
@@ -283,8 +288,30 @@ public class ContactsinfoActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+//        return super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_contactsinfo,menu);
+        return true;
+    }
 
-//    private void applyPalette(Palette palette) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId())
+        {
+            case R.id.action_blacklist:
+            {
+                return true;
+            }
+            case R.id.action_addtag:
+            {
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //    private void applyPalette(Palette palette) {
 //        int primaryDark = getResources().getColor(R.color.primary_dark);
 //        int primary = getResources().getColor(R.color.primary);
 //        collapsingToolbarLayout.setContentScrimColor(palette.getMutedColor(primary));
