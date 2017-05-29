@@ -197,6 +197,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // Fetch contact info from db and set phone number and email
+        // Note: It is likely that the queried contact does not exist!
         Intent intent = getIntent();
 
         id = intent.getIntExtra("name", id);
@@ -253,11 +254,11 @@ public class ContactsinfoActivity extends AppCompatActivity {
 
         });
 
-        Button blacklist = (Button) findViewById(R.id.BlacklistOp);
+        Button blacklist = (Button) findViewById(R.id.ViewRecentCalls);
         blacklist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                Toast.makeText(ContactsinfoActivity.this, "Added To Blacklist!", Toast.LENGTH_LONG).show();
+                Toast.makeText(ContactsinfoActivity.this, "View Recent Calls!", Toast.LENGTH_LONG).show();
             }
 
         });
