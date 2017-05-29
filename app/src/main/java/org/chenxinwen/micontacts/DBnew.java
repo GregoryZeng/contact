@@ -180,4 +180,29 @@ public class DBnew {
         long reslut=cursor.getLong(0);
         return reslut;
     }
+
+    public Contacts findByNum(String phoneNum){
+        SQLiteDatabase db=dbOpenHelper.getReadableDatabase();
+        Cursor cursor =db.rawQuery("select * from usertable where number=?", new String[]{phoneNum});
+        if(cursor.moveToFirst()){
+            int uid2=cursor.getInt(cursor.getColumnIndex("id"));
+            String uname=cursor.getString(cursor.getColumnIndex("name"));
+            String url=cursor.getString(cursor.getColumnIndex("url"));
+            String number =cursor.getString(cursor.getColumnIndex("number"));
+            String email = cursor.getString(cursor.getColumnIndex("email"));
+            String tag = cursor.getString(cursor.getColumnIndex("tag"));
+            int blackList = cursor.getInt(cursor.getColumnIndex("blackList"));
+            Contacts data=new Contacts();
+            data.setId(uid2);
+            data.setName(uname);
+            data.setUrl(url);
+            data.setNumber(number);
+            data.setEmail(email);
+            data.setTag(tag);;
+            data.setBlackList(blackList);
+            return data;
+        }
+        cursor.close();
+        return null;
+    }
 }
