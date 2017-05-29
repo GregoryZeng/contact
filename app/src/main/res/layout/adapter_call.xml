@@ -10,10 +10,11 @@
 
     <com.thinkcool.circletextimageview.CircleTextImageView
         android:id="@+id/mUserPhoto"
-        android:layout_width="37dp"
+        android:layout_width="0dp"
         android:layout_height="37dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="25dp"
+        android:layout_weight="1"
         app:citv_border_color="#acafb0"
         app:citv_border_width="0.3dp"
         app:citv_fill_color="#e0e2e3"
@@ -23,7 +24,8 @@
 
 
     <LinearLayout
-        android:layout_width="146dp"
+        android:layout_width="0dp"
+        android:layout_weight="4"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="14dp"
@@ -69,9 +71,11 @@
 
     <ImageButton
         android:id="@+id/Contact_info"
-        android:layout_width="56dp"
+        android:layout_width="0dp"
         android:layout_height="51dp"
+        android:layout_weight="1"
         android:layout_gravity="center_vertical"
+        android:layout_marginRight="25dp"
         android:background="@android:color/white"
         app:srcCompat="@android:drawable/ic_dialog_info" />
 
