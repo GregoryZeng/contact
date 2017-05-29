@@ -2,13 +2,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".ContactsinfoActivity">
-    <item android:id="@+id/action_addtag"
+    <item
+        android:id="@+id/action_addtag"
+        android:icon="@android:drawable/ic_lock_lock"
         android:title="Add a Tag"
-        app:showAsAction="never"/>
-    <item android:id="@+id/action_blacklist"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_blacklist"
+        android:icon="@drawable/ic_person_black_24dp"
         android:title="Blacklist"
-        app:showAsAction="never"/>
-    <item android:id="@+id/action_SMS"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_SMS"
+        android:icon="@android:drawable/ic_menu_send"
         android:title="Send Comfort Texts"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_history"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="History"
+        app:showAsAction="ifRoom" />
+
 </menu>

@@ -108,6 +108,10 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+
+//        FOR TEST ONLY
+//        Intent intent=new Intent(MainActivity.this,ComfortSMSAct.class);
+//        startActivity(intent);
     }
 
 

@@ -33,7 +33,7 @@
             android:label="@string/add_contact_label" />
         <activity
             android:name=".ContactsinfoActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".call_cluster" />
         <activity
             android:name=".EditContactsinfoActivity"
@@ -41,7 +41,10 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ComfortMsgActivity"
-            android:label="@string/title_activity_comfort_msg"
+            android:label="@string/title_activity_comfort_msg" />
+        <activity
+            android:name=".ComfortSMSAct"
+            android:label="@string/title_activity_comfort_sms"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

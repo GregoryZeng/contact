@@ -25,6 +25,7 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import org.chenxinwen.micontacts.bean.Contacts;
+import org.chenxinwen.micontacts.bean.RecordEntity;
 import org.chenxinwen.micontacts.fragment.ContactsFragment;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,6 +35,7 @@ import org.w3c.dom.Text;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -187,6 +189,10 @@ public class ContactsinfoActivity extends AppCompatActivity {
         email_tv.setText(curr_contact.getEmail());
     }
 
+
+
+    private List<RecordEntity> EntityList=new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -203,11 +209,22 @@ public class ContactsinfoActivity extends AppCompatActivity {
         id = intent.getIntExtra("name", id);
 
         if (id == 0) {
+            EntityList=(List<RecordEntity>)intent.getSerializableExtra("List");
             curr_contact = new Contacts();
-            curr_contact.setName("aaa");
-            curr_contact.setNumber("123");
-            curr_contact.setEmail("aa@aa");
-            Toast.makeText(ContactsinfoActivity.this, "=0", Toast.LENGTH_LONG).show();
+
+            if(EntityList==null)
+            {
+                curr_contact.setName("John");
+                curr_contact.setNumber("13418642200");
+                curr_contact.setEmail("john@gmail.com");
+            }
+            else
+            {
+                curr_contact.setName(EntityList.get(0).getNumber());
+                curr_contact.setNumber(EntityList.get(0).getNumber());
+                curr_contact.setEmail("N/A");
+            }
+
         } else {
             curr_contact = db.find(id);
         }
@@ -313,11 +330,18 @@ public class ContactsinfoActivity extends AppCompatActivity {
                 return true;
             case R.id.action_addtag:
                 return true;
-            case R.id.action_SMS:
+            case R.id.action_SMS: {
                 Intent intent = new Intent(ContactsinfoActivity.this, ComfortMsgActivity.class);
                 intent.putExtra("phone", curr_contact.getNumber());
                 startActivity(intent);
                 return true;
+            }
+            case R.id.action_history: {
+                Intent intent = new Intent(ContactsinfoActivity.this, call_cluster.class);
+                intent.putExtra("List",(Serializable)EntityList);
+                startActivity(intent);
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
 
