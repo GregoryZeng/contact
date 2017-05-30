@@ -1,8 +1,10 @@
 package org.chenxinwen.micontacts;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -281,14 +283,14 @@ public class ContactsinfoActivity extends AppCompatActivity {
 
         });
 
-        Button blacklist = (Button) findViewById(R.id.ViewRecentCalls);
-        blacklist.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                Toast.makeText(ContactsinfoActivity.this, "View Recent Calls!", Toast.LENGTH_LONG).show();
-            }
-
-        });
+//        Button blacklist = (Button) findViewById(R.id.ViewRecentCalls);
+//        blacklist.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View arg0) {
+//                Toast.makeText(ContactsinfoActivity.this, "View Recent Calls!", Toast.LENGTH_LONG).show();
+//            }
+//
+//        });
     }
 
     @Override
@@ -326,9 +328,15 @@ public class ContactsinfoActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_blacklist:
+            case R.id.action_blacklist: {
+                Toast.makeText(ContactsinfoActivity.this, "Added to Blacklist", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            case R.id.action_freelist:
+                Toast.makeText(ContactsinfoActivity.this, "Removed from Blacklist", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.action_addtag:
+                //TODO
                 return true;
             case R.id.action_SMS: {
                 Intent intent = new Intent(ContactsinfoActivity.this, ComfortMsgActivity.class);
@@ -337,6 +345,7 @@ public class ContactsinfoActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.action_history: {
+                Log.d("Greg's contactsinfo","action_history triggers");
                 Intent intent = new Intent(ContactsinfoActivity.this, call_cluster.class);
                 intent.putExtra("List",(Serializable)EntityList);
                 startActivity(intent);

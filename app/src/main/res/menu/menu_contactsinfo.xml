@@ -13,6 +13,10 @@
         android:title="Blacklist"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_freelist"
+        android:title="Remove From Blacklist"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/action_SMS"
         android:icon="@android:drawable/ic_menu_send"
         android:title="Send Comfort Texts"

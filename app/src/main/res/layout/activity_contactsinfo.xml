@@ -198,17 +198,17 @@
 
             </android.support.v7.widget.CardView>
 
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
+            <!--<android.support.v7.widget.CardView-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_marginTop="20dp">-->
 
-                <Button
-                    android:id="@+id/ViewRecentCalls"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="View Recent Calls" />
-            </android.support.v7.widget.CardView>
+                <!--<Button-->
+                    <!--android:id="@+id/ViewRecentCalls"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="View Recent Calls" />-->
+            <!--</android.support.v7.widget.CardView>-->
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>
