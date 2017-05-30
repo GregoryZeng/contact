@@ -6,4 +6,10 @@
 		  android:title="RESET"
 		  android:orderInCategory="100"
 		  app:showAsAction="never"/>
+	<item android:id="@+id/upload"
+		  android:title="Upload to Cloud"
+		  app:showAsAction="never"/>
+	<item android:id="@+id/download"
+		  android:title="Download to Local"
+		  app:showAsAction="never"/>
 </menu>

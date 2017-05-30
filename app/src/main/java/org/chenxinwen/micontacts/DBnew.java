@@ -30,7 +30,12 @@ public class DBnew {
     public void insert(Contacts data){
         SQLiteDatabase db=dbOpenHelper.getWritableDatabase();
         try{
-            db.execSQL("insert into usertable(id,name,url,number,email,tag,blackList) values(?,?,?,?,?,?,?)", new Object[]{data.getId(),data.getName(),data.getUrl(),data.getNumber(),data.getEmail(),data.getTag(),data.getBlackList()});
+            db.execSQL("insert into usertable" +
+                    "(id,name,url,number,email,tag,blackList) " +
+                    "values(?,?,?,?,?,?,?)",
+                    new Object[]{data.getId(),data.getName(),
+                            data.getUrl(),data.getNumber(),
+                            data.getEmail(),data.getTag(),data.getBlackList()});
             db.close();
         }
         catch (Exception e)
@@ -205,4 +210,6 @@ public class DBnew {
         cursor.close();
         return null;
     }
+
+
 }

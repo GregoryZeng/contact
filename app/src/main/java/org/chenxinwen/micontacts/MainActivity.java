@@ -25,12 +25,19 @@ import org.chenxinwen.micontacts.fragment.CallFragment;
 import org.chenxinwen.micontacts.fragment.ContactsFragment;
 
 import org.chenxinwen.micontacts.view.MiTab;
+import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,14 +52,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MiTab mTab;
     private ViewPager mViewPager;
     private FloatingActionButton mFab;
-//  自家数据
-private static final String SAVE_PIC_PATH = Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED) ? Environment.getExternalStorageDirectory().getAbsolutePath() :"/mnt/sdcard";//保存到SD卡
+    //  自家数据
+    private static final String SAVE_PIC_PATH = Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED) ? Environment.getExternalStorageDirectory().getAbsolutePath() : "/mnt/sdcard";//保存到SD卡
     private static final String SAVE_REAL_PATH = SAVE_PIC_PATH + "/ContactImg/";//保存的确切位置
     private static final int ADD_CONTACT_RESULT_CODE = 1;
     public static MainActivity instance = null;
     private String newName;
     private String newUrl;
     private DBnew db = new DBnew(this);
+
     //自家函数
     //重写onCreateOptionMenu(Menu menu)方法，当菜单第一次被加载时调用
     @Override
@@ -65,6 +73,129 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
 
     //重写OptionsItemSelected(MenuItem item)来响应菜单项(MenuItem)的点击事件（根据id来区分是哪个item）
 
+    private String getStringFromInputStream(InputStream is) throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len = -1;
+        while ((len = is.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+        }
+        is.close();
+        String state = os.toString();
+        os.close();
+        return state;
+    }
+
+    private ArrayList<Contacts> downloaded_contacts;
+    private ArrayList<Contacts> uploaded_contacts;
+
+    public void download() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection conn = null;
+                try {
+                    URL url = new URL("http://108.61.161.75:5000/download_contact?uuid=" + "greg");
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+//                    String result = getStringFromInputStream(conn.getInputStream());
+                    String result = conn.getInputStream().toString();
+                    Log.d("Greg's download result", result);
+                    if (conn.getResponseCode() == 200) {
+                        JSONObject jsonObject = new JSONObject(result);
+                        downloaded_contacts = new ArrayList<>();
+                        int i = 0;
+                        while (jsonObject.isNull(i + "")) {
+                            jsonObject = jsonObject.getJSONObject("0");
+                            String avatar = jsonObject.getString("avatar");
+                            String name = jsonObject.getString("name");
+                            String phone = jsonObject.getString("phone");
+                            Log.d("Greg's download json", i + " " + avatar + " " + name + " " + phone);
+                            Contacts curr = new Contacts();
+                            curr.setName(name);
+                            curr.setNumber(phone);
+                            curr.setUrl(avatar);
+//                            downloaded_contacts.add(curr);
+
+                            // query if exist
+                            // NOTE: assume that numbers could be seen distinct
+                            if (db.findByNum(phone) == null) {
+                                db.insert(curr);
+                            }
+
+                            i++;
+                        }
+
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (conn != null)
+                        conn.disconnect();
+                }
+
+            }
+        }).start();
+    }
+
+    public void upload() {
+        Log.d("Greg's", "Upload begins");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                HttpURLConnection conn = null;
+                uploaded_contacts = db.getAllData();
+                for (int i = 0; i < uploaded_contacts.size(); i++) {
+                    try {
+
+                        // Convert the local data into the JSON format
+                        JSONObject toSend = new JSONObject();
+                        toSend.put("uuid","greg");
+                        Log.d("Greg's upload", "fetching all data from db");
+                        Log.d("Greg's upload", "producing JSON");
+
+                        toSend.put("avatar", uploaded_contacts.get(i).getUrl());
+                        toSend.put("name", uploaded_contacts.get(i).getName());
+                        toSend.put("phone", uploaded_contacts.get(i).getNumber());
+
+                        Log.d("Greg's upload", "starting connection");
+                        // Create an HTTP connection
+                        URL url = new URL("http://108.61.161.75:5000/upload_contact");
+                        conn = (HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setChunkedStreamingMode(0);
+                        conn.setDoOutput(true);
+                        conn.setDoInput(true);
+                        conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setUseCaches(false);
+                        OutputStream os = conn.getOutputStream();
+
+                        Log.d("Greg's upload",toSend.toString());
+                        Log.d("Greg's upload",toSend.toString().getBytes().toString());
+                        Log.d("Greg's upload","testing3");
+
+                        os.write(toSend.toString().getBytes());
+
+                        Log.d("Greg's upload", "to receive response");
+                        int response = conn.getResponseCode();
+                        Log.d("Greg's upload response", response + "");
+                        Log.d("Greg's upload response", conn.getResponseMessage());
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (conn != null)
+                            conn.disconnect();
+                    }
+                }
+            }
+        }).start();
+
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -75,13 +206,23 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
                 Toast.makeText(this, "RESET", Toast.LENGTH_SHORT).show();
                 db.reset();
                 ContactsFragment.instance.refreshData();
-                break;
+                return true;
 
+            case R.id.download:
+                Log.d("Greg", "download button triggers");
+                download();
+                return true;
+
+            case R.id.upload:
+                Log.d("Greg", "upload button triggers");
+                upload();
+                return true;
             default:
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent Intent_data) {
         ContactsFragment.instance.refreshData();
@@ -98,13 +239,11 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
     }
 
 
-
-
     //自家函数结束
     //private DBnew db = new DBnew(this);
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        instance =this;
+        instance = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
@@ -113,8 +252,6 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
 //        Intent intent=new Intent(MainActivity.this,ComfortSMSAct.class);
 //        startActivity(intent);
     }
-
-
 
 
     private void initView() {
@@ -127,10 +264,10 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
             @Override
             public void onClick(View arg0) {
 
-                    // Intent intent = new Intent(MainActivity.this, AddNewContact.class);
-                    //startActivity(intent);
-                    Intent intent = new Intent(MainActivity.this, AddNewContact.class);
-                    startActivityForResult(intent,0);
+                // Intent intent = new Intent(MainActivity.this, AddNewContact.class);
+                //startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, AddNewContact.class);
+                startActivityForResult(intent, 0);
 
 
             }
@@ -144,21 +281,20 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
 
         mViewPager.setCurrentItem(1);
 
-        mFab.setOnLongClickListener(new View.OnLongClickListener(){
+        mFab.setOnLongClickListener(new View.OnLongClickListener() {
 
             @Override
             public boolean onLongClick(View v) {
-                SimpleDateFormat formatter    =   new    SimpleDateFormat    ("yyyy年MM月dd日    HH:mm:ss     ");
-                Date curDate    =   new    Date(System.currentTimeMillis());//获取当前时间
-                String    str    =    formatter.format(curDate);
-                Toast.makeText(v.getContext(),"正在和 45.32.48.44同步通讯录",Toast.LENGTH_LONG).show();
-                Toast.makeText(v.getContext(),str+" 同步成功，本次同步更新了4条记录，本地已更新到最新",Toast.LENGTH_SHORT).show();
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日    HH:mm:ss     ");
+                Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                String str = formatter.format(curDate);
+                Toast.makeText(v.getContext(), "正在和 45.32.48.44同步通讯录", Toast.LENGTH_LONG).show();
+                Toast.makeText(v.getContext(), str + " 同步成功，本次同步更新了4条记录，本地已更新到最新", Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
 
     }
-
 
 
     @Override
@@ -174,7 +310,7 @@ private static final String SAVE_PIC_PATH = Environment.getExternalStorageState(
 
         private String[] titles = {getString(R.string.call),
                 getString(R.string.contacts)
-                };
+        };
 
         public MyPagerAdapter(FragmentManager fm) {
             super(fm);
