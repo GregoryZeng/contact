@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.chenxinwen.micontacts">
+          package="org.chenxinwen.micontacts">
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
@@ -18,16 +18,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustPan|stateHidden">
+            android:name=".Login"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
         <activity
             android:name=".AddNewContact"
             android:label="@string/add_contact_label" />
@@ -39,6 +42,8 @@
             android:name=".EditContactsinfoActivity"
             android:label="编辑联系人"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Regist"></activity>
+
         <activity
             android:name=".ComfortMsgActivity"
             android:label="@string/title_activity_comfort_msg" />
@@ -46,6 +51,9 @@
             android:name=".ComfortSMSAct"
             android:label="@string/title_activity_comfort_sms"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+
     </application>
+
+
 
 </manifest>

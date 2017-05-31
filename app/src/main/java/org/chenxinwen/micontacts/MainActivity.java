@@ -28,6 +28,8 @@ import org.chenxinwen.micontacts.view.MiTab;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -35,7 +37,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -171,31 +175,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         conn.setDoOutput(true);
                         conn.setDoInput(true);
                         conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setRequestProperty("ser-Agent", "Fiddler");
                         conn.setUseCaches(false);
                         conn.setInstanceFollowRedirects(true);
+                        conn.setConnectTimeout(5000);
 
 //                        Log.d("Greg's upload",URLEncoder.encode(toSend.toString(),"UTF-8"));
-                        conn.connect();
-                        Log.d("Greg's upload","test1");
 
-//                        OutputStream os = conn.getOutputStream();
-                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-                        byte [] content = toSend.toString().getBytes("utf-8");
-                        Log.d("Greg's json",toSend.toString());
-                        out.write(content,0,content.length);
+                        OutputStream os = conn.getOutputStream();
+//                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(os,"UTF-8"));
 
+//                        byte [] content = toSend.toString().getBytes("utf-8");
+                        out.write(toSend.toString());
                         out.flush();
                         out.close();
+                        conn.connect();
 
-                        Log.d("Greg's upload", "to receive response");
-                        int response = conn.getResponseCode();
-                        Log.d("Greg's upload response", response + "");
-                        Log.d("Greg's upload response", conn.getResponseMessage());
+                        Log.d("Greg's json",toSend.toString());
+//                        out.write(content,0,content.length);
+//                        OutputStream os = conn.getOutputStream();
+//                        os.write(content);
+//                        os.flush();
 
+
+//                        String result="";
+//                        BufferedReader in = new BufferedReader(
+//                                new InputStreamReader(conn.getInputStream()));
+//                        String line;
+                        if (conn.getResponseCode() == 200) {
+//                            while ((line = in.readLine()) != null) {
+//                                result += line;
+//                            }
+                            Log.d("Greg's res","200");
+                        }
+                        Log.d("Greg's res",conn.getResponseCode()+" "+conn.getResponseMessage());
+
+
+//                        InputStream in = conn.getInputStream();
+//                        Log.d("Greg's upload","test2");
+//                        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
+//                        Log.d("Greg's upload","test3");
+//
+//                        String line = "";
+//                        Log.d("Greg's post","Contents of post request start");
+//
+//                        String returnLine="";
+//                        while ((line = reader.readLine()) != null) {
+//                            // line = new String(line.getBytes(), "utf-8");
+//                            returnLine += line;
+//                            Log.d("Greg's post",line);
+//                        }
+//
+//                        Log.d("Greg's post","Contents of post request ends");
+//                        reader.close();
+
+//                        Log.d("Greg's upload", "to receive response");
+//                        int response = conn.getResponseCode();
+//                        Log.d("Greg's upload response", response + "");
+//                        Log.d("Greg's upload response", conn.getResponseMessage());
+//                        Log.d("Greg's response",conn.getContentEncoding());
 
 
                     } catch (Exception e) {
-                        Log.d("Greg's exception",e.getLocalizedMessage());
+
+                        Log.d("Greg's exception", e.getCause()+ " " + e.getMessage() + " " + e.getLocalizedMessage());
 
                         e.printStackTrace();
                     } finally {
@@ -261,6 +305,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+
+        Toast.makeText(MainActivity.this, "Login succeeds!", Toast.LENGTH_LONG).show();
+
 
 //        FOR TEST ONLY
 //        Intent intent=new Intent(MainActivity.this,ComfortSMSAct.class);
