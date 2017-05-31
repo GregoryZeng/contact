@@ -98,6 +98,9 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
         View view = inflater.inflate(R.layout.fragment_contacts, container, false);
         characterParser = CharacterParser.getInstance();
         initView(view);
+
+        if (contacts.size() == 0)
+            checkPermission();
         return view;
     }
 
@@ -200,10 +203,10 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
     public void onResume() {
         //refreshData();
         Log.d("onresume","fragment");
-        super.onResume();
+        super.onResume();/*
         if (contacts.size() > 0)
             return;
-        checkPermission();
+        checkPermission();*/
     }
 
     private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 1;

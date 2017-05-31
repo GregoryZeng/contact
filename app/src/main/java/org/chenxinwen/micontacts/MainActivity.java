@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case (ADD_CONTACT_RESULT_CODE): {
                 super.onActivityResult(requestCode, resultCode, Intent_data);
                 Log.d("onActivityResult","run");
-                ContactsFragment.instance.newrefreshData();
+                ContactsFragment.instance.refreshData();
                 break;
             }
             case (UPDATE_CONTACT_RESULT_CODE): {

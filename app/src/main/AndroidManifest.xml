@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Login"
-            android:label="@string/app_name">
+            android:label="Login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -46,7 +46,8 @@
             android:name=".EditContactsinfoActivity"
             android:label="编辑联系人"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Regist"></activity>
+        <activity android:name=".Regist"
+            android:label="Register"></activity>
 
         <activity
             android:name=".ComfortMsgActivity"
