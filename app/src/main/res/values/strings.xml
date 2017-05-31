@@ -97,8 +97,8 @@
     <string name="call">通话</string>
     <string name="contacts">联系人</string>
     <string name="yellow_page">黄页</string>
-    <string name="title_activity_contactsinfo">ContactsinfoActivity</string>
-    <string name="title_activity_comfort_msg">ComfortMsgActivity</string>
+    <string name="title_activity_contactsinfo">联系人页面</string>
+    <string name="title_activity_comfort_msg">关怀短信</string>
     <string name="title_activity_comfort_sms">ComfortSMSAct</string>
     <string name="section_format">Hello World from section: %1$d</string>
 </resources>

@@ -29,6 +29,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -38,6 +39,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -170,22 +172,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         conn.setDoInput(true);
                         conn.setRequestProperty("Content-Type", "application/json");
                         conn.setUseCaches(false);
-                        OutputStream os = conn.getOutputStream();
+                        conn.setInstanceFollowRedirects(true);
 
-                        Log.d("Greg's upload",toSend.toString());
-                        Log.d("Greg's upload",toSend.toString().getBytes().toString());
-                        Log.d("Greg's upload","testing3");
+//                        Log.d("Greg's upload",URLEncoder.encode(toSend.toString(),"UTF-8"));
+                        conn.connect();
+                        Log.d("Greg's upload","test1");
 
-                        os.write(toSend.toString().getBytes());
+//                        OutputStream os = conn.getOutputStream();
+                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        byte [] content = toSend.toString().getBytes("utf-8");
+                        Log.d("Greg's json",toSend.toString());
+                        out.write(content,0,content.length);
+
+                        out.flush();
+                        out.close();
 
                         Log.d("Greg's upload", "to receive response");
                         int response = conn.getResponseCode();
                         Log.d("Greg's upload response", response + "");
                         Log.d("Greg's upload response", conn.getResponseMessage());
 
+
+
                     } catch (Exception e) {
+                        Log.d("Greg's exception",e.getLocalizedMessage());
+
                         e.printStackTrace();
                     } finally {
+                        Log.d("Greg's upload","finally");
                         if (conn != null)
                             conn.disconnect();
                     }

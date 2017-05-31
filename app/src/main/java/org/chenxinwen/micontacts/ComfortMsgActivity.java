@@ -45,7 +45,7 @@ public class ComfortMsgActivity extends AppCompatActivity {
         list.add("不联系不代表忘记，不看你不代表漠视，不想你其实不容易，关心你才是必须，和你在一起的日子定是我最美好的回忆，朋友，保重身体！");
         list.add("总有一些事在心里，总有一些朋友关心你，朋友，一切安好，如果心里有事，不妨向我诉说，多多联系。愿天下间所有朋友快乐幸福，没有烦恼。");
 
-        aa=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,list);
+        aa=new ArrayAdapter<String>(this,R.layout.list_item,list);
         listView.setAdapter(aa);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
