@@ -21,14 +21,8 @@ public class DBOpenHelper extends SQLiteOpenHelper {
         //db=SQLiteDatabase.openOrCreateDatabase("/data/databases/lrz.db",null);
         try {
             //db.execSQL("DROP TABLE uesertable");
-            db.execSQL("create table usertable(" +
-                    "id integer primary key autoincrement," +
-                    "name varchar(50)," +
-                    "url varchar(50)," +
-                    "number varchar(50)," +
-                    "email varchar(50)," +
-                    "tag varchar(50)," +
-                    "blackList integer)");
+            db.execSQL("create table usertable(id integer primary key autoincrement,name varchar(50),url varchar(50),number varchar(50),email varchar(50),blackList integer)");
+            db.execSQL("create table tagtable(id integer,tag varchar(50))");
         }
         catch (Exception e)
         {

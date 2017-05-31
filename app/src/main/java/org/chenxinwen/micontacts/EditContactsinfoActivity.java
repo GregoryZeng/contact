@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import org.chenxinwen.micontacts.bean.Contacts;
+import org.kymjs.kjframe.KJBitmap;
 import org.kymjs.kjframe.utils.KJLoger;
 
 import java.io.BufferedOutputStream;
@@ -63,6 +64,14 @@ public class EditContactsinfoActivity extends AppCompatActivity {
         phone_et=(EditText)findViewById(R.id.phone);
         email_et=(EditText)findViewById(R.id.email);
         contactImg = (ImageView)findViewById(R.id.contactImg);
+        Contacts tempContact = db.find(targetID);
+        name.setText(tempContact.getName());
+        phone_et.setText(tempContact.getNumber());
+        email_et.setText(tempContact.getEmail());
+        KJBitmap kjb = new KJBitmap();
+        if (!tempContact.getUrl().equals("noImg")) {
+            kjb.displayWithLoadBitmap(contactImg, tempContact.getUrl(), R.drawable.default_head_rect);
+        }
         bt_add = (Button) findViewById(R.id.add);
         bt_cancel = (Button) findViewById(R.id.cancel);
         bt_add.setOnClickListener(new View.OnClickListener() {

@@ -2,6 +2,7 @@ package org.chenxinwen.micontacts.fragment;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -9,12 +10,14 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -53,6 +56,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 
+import android.os.Handler;
+
+import java.util.logging.LogRecord;
+
+import static android.R.attr.button;
+
 
 /**
  * Created by chenxinwen on 16/8/9.10:09.
@@ -60,6 +69,9 @@ import java.util.Random;
  */
 public class ContactsFragment extends Fragment implements OnQuickSideBarTouchListener {
 
+
+    private final int READ_LOCAL_CONTACTS =1;
+    private final int UPDATE_CONTACTS =2;
     private Context context = MyApplication.getInstance();
     private ContactsListWithHeadersAdapter adapter = new ContactsListWithHeadersAdapter();
     public static ContactsFragment instance = null;
@@ -67,12 +79,13 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
     private QuickSideBarTipsView quickSideBarTipsView;
     private QuickSideBarView quickSideBarView;
     private HashMap<String, Integer> letters = new HashMap<>();
-    private  ArrayList<Contacts> contacts = new ArrayList<Contacts>();
+    private ArrayList<Contacts> contacts = new ArrayList<Contacts>();
     private CharacterParser characterParser;
-    private DBnew db =new DBnew(MainActivity.instance);
-    private  TextWatcher mWatcher;
-    private  EditText mSearchInput;
+    private DBnew db = new DBnew(MainActivity.instance);
+    private TextWatcher mWatcher;
+    private EditText mSearchInput;
     private KJBitmap kjb = new KJBitmap();
+    private ArrayList<Contacts> tempDatas = new ArrayList<>();
     //
     public static ContactsFragment newInstance() {
         return new ContactsFragment();
@@ -87,8 +100,34 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
         initView(view);
         return view;
     }
-    private void updateState()
-    {
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case READ_LOCAL_CONTACTS: {
+                    upDateFromDB();
+                    updateState();
+                    break;
+                }
+                case UPDATE_CONTACTS:
+                {
+                    Log.d("refreshData","thread");
+                    contacts.clear();
+                    for(Contacts contact:tempDatas)
+                    {
+                        contacts.add(contact);
+                    }
+                    updateState();
+
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    };
+
+    private void updateState() {
         ArrayList<String> customLetters = new ArrayList<>();
         letters.clear();
         int position = 0;
@@ -109,6 +148,7 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
 
         adapter.notifyDataSetChanged();
     }
+
     private void initView(View view) {
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
         quickSideBarTipsView = (QuickSideBarTipsView) view.findViewById(R.id.quickSideBarTipsView);
@@ -128,16 +168,26 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     if (data.getName().contains(s) || data.getPinyin().contains(s)) {
                         tmp.add(data);
                     }
+                    else{
+                        ArrayList<String> tags = data.getTag();
+                        for(String tag:tags)
+                        {
+                            if(tag.contains(s))
+                                tmp.add(data);
+                        }
+                    }
                 }
                 contacts = tmp;
                 updateState();
 
             }
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
                                           int after) {
                 //  Log.e("beforeTextChanged----->", "有"+count+"个字符从"+start+" 位置开始  已经被"+ after+"个字符所替换");
             }
+
             @Override
             public void afterTextChanged(Editable s) {
 
@@ -149,6 +199,7 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
     @Override
     public void onResume() {
         //refreshData();
+        Log.d("onresume","fragment");
         super.onResume();
         if (contacts.size() > 0)
             return;
@@ -189,69 +240,97 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                 initContants();
                 return;
             } else {
-                Toast.makeText(getActivity(), "Read Contacts permission denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Read Contacts permission denied", Toast.LENGTH_LONG).show();
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
-    private void upDateFromDB()
-    {
+    private void upDateFromDB() {
         contacts.clear();
         ArrayList<Contacts> tmpDatas = new ArrayList<>();
         tmpDatas = db.getAllData();
-        for(int i=0;i<tmpDatas.size();i++)
-        {
+        for (int i = 0; i < tmpDatas.size(); i++) {
             //   datas.add(tmpDatas.get(i));
             Contacts data = tmpDatas.get(i);
             String sortKey = data.getPinyin().toUpperCase();
-            if(sortKey.length()>0) sortKey = sortKey.substring(0,1);
+            if (sortKey.length() > 0) sortKey = sortKey.substring(0, 1);
             else sortKey = "#";
             if (!sortKey.matches("[A-Z]")) {
                 sortKey = "#";
             }
             data.setSortKey(sortKey);
-            Log.d("获得全部数据ID：",String.valueOf(data.getId()));
-            Log.d("获得全部数据名字：" , data.getName());
-            Log.d("获得全部数据url：" , data.getUrl());
+            Log.d("获得全部数据ID：", String.valueOf(data.getId()));
+            Log.d("获得全部数据名字：", data.getName());
+            Log.d("获得全部数据url：", data.getUrl());
             contacts.add(data);
         }
         Collections.sort(contacts);
     }
-    public void refreshData()
-    {
+
+    public void newrefreshData() {
+        Log.d("refreshData","normal");
         upDateFromDB();
         updateState();
+    }
+    public void refreshData() {
+        Thread updateThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                tempDatas = db.getAllData();
+                for (int i = 0; i < tempDatas.size(); i++) {
+                    //   datas.add(tmpDatas.get(i));
+                    Contacts data = tempDatas.get(i);
+                    String sortKey = data.getPinyin().toUpperCase();
+                    if (sortKey.length() > 0) sortKey = sortKey.substring(0, 1);
+                    else sortKey = "#";
+                    if (!sortKey.matches("[A-Z]")) {
+                        sortKey = "#";
+                    }
+                    data.setSortKey(sortKey);
+                }
+                Collections.sort(tempDatas);
+                Message message = new Message();
+                message.what = UPDATE_CONTACTS;
+                mHandler.sendMessage(message);
+            }
 
+        });
+        updateThread.start();
+        /*upDateFromDB();
+        updateState();*/
         // recyclerView.setAdapter(adapter);
 
 
         // Add decoration for dividers between list items
         // recyclerView.addItemDecoration(new DividerDecoration(getActivity()));
     }
+
     private void initContants() {
+        Log.d("initContact","run");
         upDateFromDB();
-        HashMap<Integer, Boolean> ID_map = new HashMap<Integer, Boolean>();
-        try {
-            if (contacts.size() == 0) {
-                Toast.makeText(getActivity(), "正在读取本地联系人...", Toast.LENGTH_SHORT).show();
-                String id ="";
-                String name="";
-                String phoneNumber="";
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("initContants","2");
+                HashMap<Integer, Boolean> ID_map = new HashMap<Integer, Boolean>();
+                String id = "";
+                String name = "";
+                String phoneNumber = "";
                 String email = "";
                 //ContentResolver contentResolver = this.getContentResolver();
                 Cursor cursor = getActivity().getContentResolver().query(android.provider.ContactsContract.Contacts.CONTENT_URI,
                         null, null, null, null);
-                while(cursor.moveToNext()) {
-                    id=cursor.getString(cursor.getColumnIndex(android.provider.ContactsContract.Contacts._ID));
-                    name=cursor.getString(cursor.getColumnIndex(android.provider.ContactsContract.Contacts.DISPLAY_NAME));
+                while (cursor.moveToNext()) {
+                    id = cursor.getString(cursor.getColumnIndex(android.provider.ContactsContract.Contacts._ID));
+                    name = cursor.getString(cursor.getColumnIndex(android.provider.ContactsContract.Contacts.DISPLAY_NAME));
 
                     //Fetch Phone Number
                     Cursor phoneCursor = getActivity().getContentResolver().query(
                             android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null, android.provider.ContactsContract.CommonDataKinds.Phone.CONTACT_ID+"="+id, null, null);
-                    while(phoneCursor.moveToNext()) {
+                            null, android.provider.ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=" + id, null, null);
+                    while (phoneCursor.moveToNext()) {
                         phoneNumber = phoneCursor.getString(
                                 phoneCursor.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER));
                         //System.out.println("id="+id+" name="+name+" phoneNumber="+phoneNumber);
@@ -261,8 +340,8 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     //Fetch email
                     Cursor emailCursor = getActivity().getContentResolver().query(
                             android.provider.ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-                            null, android.provider.ContactsContract.CommonDataKinds.Email.CONTACT_ID+"="+id, null, null);
-                    while(emailCursor.moveToNext()) {
+                            null, android.provider.ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=" + id, null, null);
+                    while (emailCursor.moveToNext()) {
                         email = emailCursor.getString(
                                 emailCursor.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Email.DATA));
                         // System.out.println("id="+id+" name="+name+" email="+email);
@@ -272,9 +351,9 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     //  Log.d("get num:", cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
 
                     Random random = new Random();
-                    int tmpID = random.nextInt(10000);
+                    int tmpID = random.nextInt(100000) + 10;
                     while (ID_map.containsKey(tmpID)) {
-                        tmpID = random.nextInt(10000);
+                        tmpID = random.nextInt(100000) + 10;
                     }
                     ID_map.put(tmpID, true);
                     contact.setId(tmpID);
@@ -283,7 +362,7 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     contact.setName(name);
                     contact.setPinyin(HanziToPinyin.getPinYin(name));
                     String sortKey = contact.getPinyin().toUpperCase();
-                    if(sortKey.length()>0) sortKey = sortKey.substring(0,1);
+                    if (sortKey.length() > 0) sortKey = sortKey.substring(0, 1);
                     else sortKey = "#";
                     if (!sortKey.matches("[A-Z]")) {
                         sortKey = "#";
@@ -292,16 +371,40 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     db.insert(contact);
                     contacts.add(contact);
                 }
-                cursor.close();
+                if(Build.VERSION.SDK_INT < 14) {
+                    cursor.close();
+                }
                 getActivity().startManagingCursor(cursor);//cursor的生命周期托管给activity
+
+                Message message = new Message();
+                message.what = READ_LOCAL_CONTACTS;
+                mHandler.sendMessage(message);
             }
-        }catch (Exception e)
-        {
-            Log.d("tongbu:",e.getMessage());
+        });
+        if (contacts.size() == 0) {
+            new AlertDialog.Builder(getActivity()).setTitle("读取本地联系人？")
+                    .setIcon(android.R.drawable.ic_dialog_info)
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // 点击“确认”后的操作
+                            Toast.makeText(getActivity(), "正在读取本地联系人...", Toast.LENGTH_LONG).show();
+                            thread.start();
+
+                        }
+                    })
+                    .setNegativeButton("返回", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // 点击“返回”后的操作,这里不设置没有任何操作
+                        }
+                    }).show();
+
         }
         upDateFromDB();
         letters = new HashMap<>();
-
 
 
         //设置列表数据和浮动header
@@ -325,12 +428,12 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
             position++;
         }
 
-        customLetters.clear();;
+        customLetters.clear();
+        ;
         customLetters.add("#");
         char letter = 'A';
-        for(int i=0;i<26;i++)
-        {
-            customLetters.add(String.valueOf((char)(letter+i)));
+        for (int i = 0; i < 26; i++) {
+            customLetters.add(String.valueOf((char) (letter + i)));
         }
 
         //不自定义则默认26个字母
@@ -343,7 +446,9 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
 
         // Add decoration for dividers between list items
         recyclerView.addItemDecoration(new DividerDecoration(getActivity()));
+        Log.d("initContact","end");
     }
+
     /**
      * 获取sort key的首个字符，如果是英文字母就直接返回，否则返回#。
      *
@@ -388,16 +493,16 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
                     .inflate(R.layout.adapter_contacts_item, parent, false);
             //  return new RecyclerView.ViewHolder(view) {
             //  };
-            final RecyclerView.ViewHolder holder=new RecyclerView.ViewHolder(view) {
+            final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
             };
-            holder.itemView.setOnClickListener(new View.OnClickListener(){
-                public void onClick(View v){
-                    int pos=holder.getAdapterPosition();
-                    Contacts contact=contacts.get(pos);
-                    Toast.makeText(v.getContext(),"you clicked"+contact.getName(),Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getActivity(),ContactsinfoActivity.class);
-                    intent.putExtra("name",contact.getId());
-                    startActivityForResult(intent,0);
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    int pos = holder.getAdapterPosition();
+                    Contacts contact = contacts.get(pos);
+                    Toast.makeText(v.getContext(), "you clicked" + contact.getName(), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getActivity(), ContactsinfoActivity.class);
+                    intent.putExtra("name", contact.getId());
+                    startActivityForResult(intent, 0);
                 }
             });
 
@@ -409,15 +514,14 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
             View itemView = holder.itemView;
             TextView mName = (TextView) itemView.findViewById(R.id.mName);
             //CircleTextImageView mUserPhoto = (CircleTextImageView) itemView.findViewById(R.id.mUserPhoto);
-            ImageView mUserPhoto = (ImageView)itemView.findViewById(R.id.mUserPhoto);
-            Log.e("Img Url:",getItem(position).getUrl());
+            ImageView mUserPhoto = (ImageView) itemView.findViewById(R.id.mUserPhoto);
+            Log.e("Img Url:", getItem(position).getUrl());
             String tmp = "noImg";
-            if(getItem(position).getUrl().equals(tmp))
-            {
-                Log.e("noImg:",getItem(position).getUrl());
+            if (getItem(position).getUrl().equals(tmp)) {
+                Log.d("noImg:", getItem(position).getUrl());
                 mUserPhoto.setImageResource(R.drawable.default_head_rect);
-            }
-            else kjb.displayWithLoadBitmap(mUserPhoto, getItem(position).getUrl(), R.drawable.default_head_rect);
+            } else
+                kjb.displayWithLoadBitmap(mUserPhoto, getItem(position).getUrl(), R.drawable.default_head_rect);
             LinearLayout mBottomLayout = (LinearLayout) itemView.findViewById(R.id.mBottomLayout);
             if (position < contacts.size() - 1) {
                 if (getItem(position).getSortKey().equals(getItem(position + 1).getSortKey())) {
@@ -445,6 +549,7 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
             } else {
                 //   mUserPhoto.setText(name.substring(name.length() - 1));
             }
+            Log.d("onBindViewHolder:", "end");
         }
 
         @Override
@@ -468,7 +573,6 @@ public class ContactsFragment extends Fragment implements OnQuickSideBarTouchLis
             mHead.setText(String.valueOf(getItem(position).getSortKey()));
 //            holder.itemView.setBackgroundColor(getRandomColor());
         }
-
 
 
         private int getRandomColor() {

@@ -5,18 +5,28 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import org.chenxinwen.micontacts.bean.Contacts;
 import org.kymjs.kjframe.utils.KJLoger;
@@ -28,8 +38,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by Administrator on 2017/5/3.
@@ -50,6 +62,7 @@ public class AddNewContact extends Activity {
     private final int IMAGE_CODE = 0;
     private static final int ADD_CONTACT_RESULT_CODE = 1;
     private static final int RESULT_REQUEST_CODE = 2;
+    private static final int RESULT_TAG_CODE = 3;
     private String url;
     private String username;
     private String newName;
@@ -57,9 +70,22 @@ public class AddNewContact extends Activity {
     private String newUrl;
     private String newEmail;
     private DBnew db = new DBnew(this);
+    // tag
+
+    private FlowLayout flowLayout;//上面的flowLayout
+    private TagFlowLayout allFlowLayout;//所有标签的TagFlowLayout
+    private ArrayList<String> label_list = new ArrayList<>();//上面的标签列表
+    private List<String> all_label_List = new ArrayList<>();//所有标签列表
+    final List<TextView> labels = new ArrayList<>();//存放标签
+    final List<Boolean> labelStates = new ArrayList<>();//存放标签状态
+    final Set<Integer> set = new HashSet<>();//存放选中的
+    private TagAdapter<String> tagAdapter;//标签适配器
+    private LinearLayout.LayoutParams params;
+    private EditText editText;
+    private ArrayList<String> newtag =new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_contact);
         name = (EditText) findViewById(R.id.name);
@@ -88,6 +114,7 @@ public class AddNewContact extends Activity {
                 intent.putExtra("newName",username);
                 intent.putExtra("newUrl",url);
                 setResult(ADD_CONTACT_RESULT_CODE,intent);
+                onDestory();
                 finish();
             }
 
@@ -100,14 +127,6 @@ public class AddNewContact extends Activity {
             }
 
         });
-//        select = (Button)findViewById(R.id.select);
-//        select.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View v) {
-//                Intent getAlbum = new Intent(Intent.ACTION_GET_CONTENT);
-//                getAlbum.setType(IMAGE_TYPE);
-//                startActivityForResult(getAlbum, IMAGE_CODE);
-//            }
-//        });
         contactImg.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 Intent getAlbum = new Intent(Intent.ACTION_GET_CONTENT);
@@ -115,7 +134,25 @@ public class AddNewContact extends Activity {
                 startActivityForResult(getAlbum, IMAGE_CODE);
             }
         });
+
+        initView();
+        initData();
+        initEdittext();
+
     }
+    public void onDestory(){
+        flowLayout = null;//上面的flowLayout
+        allFlowLayout = null;//所有标签的TagFlowLayout
+        label_list  = null;//上面的标签列表
+        all_label_List = null;
+        tagAdapter = null;
+        editText = null;
+        db = null;
+        //super.onDestory();
+    }
+
+
+
     private void addToDB()
     {
         ArrayList<Contacts> datas = db.getAllData();
@@ -125,9 +162,9 @@ public class AddNewContact extends Activity {
             Log.d("data:", data.getName());
         }
         Random random = new Random();
-        int tmpID = random.nextInt(10000);
+        int tmpID = random.nextInt(100000)+10;
         while (ID_map.containsKey(tmpID)) {
-            tmpID = random.nextInt(10000);
+            tmpID = random.nextInt(100000)+10;
         }
         //  根据选择照片uri生成并保存该app专用的图片
         try {
@@ -174,7 +211,6 @@ public class AddNewContact extends Activity {
         }
         catch (Exception e){
             KJLoger.debug("newUrl error"+e.getMessage());;
-            //Log.d("newUrl error",e.getMessage());
             newUrl = "noImg";
         }
         Contacts data = new Contacts();
@@ -184,12 +220,30 @@ public class AddNewContact extends Activity {
         data.setId(tmpID);
         data.setEmail(newEmail);
         data.setPinyin(HanziToPinyin.getPinYin(data.getName()));
+        data.setTag(label_list);
         db.insert(data);
         // refreshData();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        Log.d("system.out getresult1",String.valueOf(resultCode));
+        if(resultCode==RESULT_TAG_CODE)
+        {
+            flowLayout.removeAllViews();
+            initView();
+            super.onActivityResult(requestCode, resultCode, data);
+            labels.clear();
+            labelStates.clear();
+            label_list= data.getStringArrayListExtra("label_list");
+            for (int i = 0; i < label_list.size() ; i++) {
+                editText = new EditText(getApplicationContext());//new 一个EditText
+                editText.setText(label_list.get(i));
+                addLabel(editText);//添加标签
+            }
+            initEdittext();
+            return;
+        }
         if (resultCode != RESULT_OK) { //此处的 RESULT_OK 是系统自定义得一个常量
 // Log.e(TAG,"ActivityResult resultCode error");
             return;
@@ -266,6 +320,7 @@ public class AddNewContact extends Activity {
 
             }
         }
+
     }
     public void startPhotoZoom(Uri uri) {
         Intent intent = new Intent("com.android.camera.action.CROP");
@@ -281,4 +336,117 @@ public class AddNewContact extends Activity {
         intent.putExtra("return-data", true);
         startActivityForResult(intent,RESULT_REQUEST_CODE);
     }
+
+    //tag
+
+    private void initView() {
+        flowLayout = (FlowLayout) findViewById(R.id.id_flowlayout);
+        // allFlowLayout = (TagFlowLayout) findViewById(R.id.id_flowlayout_two);
+        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(20, 20, 20, 20);
+        flowLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(AddNewContact.this, AddTag.class);
+                intent.putStringArrayListExtra("label_list", label_list);
+                startActivityForResult(intent,RESULT_TAG_CODE);
+            }
+        });
+    }
+    /**
+     * 初始化数据
+     */
+    private void initData(){
+        //初始化上面标签
+        label_list.clear();
+
+        for(String temp:newtag)
+        {
+            label_list.add(temp);
+        }
+
+
+        for (int i = 0; i < label_list.size() ; i++) {
+            editText = new EditText(getApplicationContext());//new 一个EditText
+            editText.setText(label_list.get(i));
+            addLabel(editText);//添加标签
+        }
+
+    }
+
+
+    /**
+     * 初始化所有标签列表
+     */
+    private void initEdittext(){
+        editText = new EditText(getApplicationContext());
+        editText.setHint("添加标签");
+        //设置固定宽度
+        editText.setMinEms(4);
+        editText.setTextSize(12);
+        //设置shape
+        editText.setBackgroundResource(R.drawable.label_add);
+        editText.setHintTextColor(Color.parseColor("#b4b4b4"));
+        editText.setTextColor(Color.parseColor("#000000"));
+        editText.setLayoutParams(params);
+        editText.setFocusable(false);
+        //editText.setEnabled(false);
+        editText.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                Intent intent = new Intent(AddNewContact.this, AddTag.class);
+                intent.putStringArrayListExtra("label_list", label_list);
+                startActivityForResult(intent,RESULT_TAG_CODE);
+            }
+
+        });
+        ;
+        //添加到layout中
+        flowLayout.addView(editText);
+    }
+
+    /**
+     * 添加标签
+     * @param editText
+     * @return
+     */
+    private boolean addLabel(EditText editText) {
+        String editTextContent = editText.getText().toString();
+        //判断输入是否为空
+        if (editTextContent.equals(""))
+            return true;
+        //判断是否重复
+        for (TextView tag : labels) {
+            String tempStr = tag.getText().toString();
+            if (tempStr.equals(editTextContent)) {
+                editText.setText("");
+                editText.requestFocus();
+                return true;
+            }
+        }
+        //添加标签
+        final TextView temp = getTag(editText.getText().toString());
+        labels.add(temp);
+        labelStates.add(false);
+        flowLayout.addView(temp);
+        //让输入框在最后一个位置上
+        editText.bringToFront();
+        //清空编辑框
+        editText.setText("");
+        editText.requestFocus();
+        return true;
+
+    }
+    private TextView getTag(String label) {
+        TextView textView = new TextView(getApplicationContext());
+        textView.setTextSize(12);
+        textView.setBackgroundResource(R.drawable.label_normal);
+        textView.setTextColor(Color.parseColor("#00aa00"));
+        textView.setText(label);
+        textView.setLayoutParams(params);
+        return textView;
+    }
+
 }
+

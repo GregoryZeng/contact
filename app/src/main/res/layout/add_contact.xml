@@ -4,10 +4,10 @@
 
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:weightSum="1">
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="1">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -102,6 +102,23 @@
             android:ems="10"
             android:hint="E-mail"
             android:inputType="none|text|textEmailAddress|textWebEmailAddress" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:ems="10"
+            android:text="标签" />
+
+        <com.zhy.view.flowlayout.FlowLayout
+            android:id="@+id/id_flowlayout"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#ffffff"
+            android:orientation="horizontal"></com.zhy.view.flowlayout.FlowLayout>
 
     </LinearLayout>
 

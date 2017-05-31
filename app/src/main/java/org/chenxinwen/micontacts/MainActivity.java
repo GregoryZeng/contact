@@ -67,6 +67,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String newUrl;
     private DBnew db = new DBnew(this);
 
+
+    private static final int UPDATE_CONTACT_RESULT_CODE = 2;
+
+
     //自家函数
     //重写onCreateOptionMenu(Menu menu)方法，当菜单第一次被加载时调用
     @Override
@@ -254,6 +258,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    private ArrayList<Contacts> cloud;
+
+    public void preload()
+    {
+        cloud = new ArrayList<>();
+        Contacts newcontact = new Contacts();
+        newcontact.setId(1);
+        newcontact.setName("zengsh");
+        newcontact.setNumber("13418642266");
+        newcontact.setEmail("gregzeng@qq.com");
+        cloud.add(newcontact);
+        newcontact.setId(2);
+        newcontact.setName("lurz");
+        newcontact.setNumber("123123213");
+        newcontact.setEmail("lurz@qq.com");
+        cloud.add(newcontact);
+    }
+
+
+
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -263,17 +289,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.reset:
                 Toast.makeText(this, "RESET", Toast.LENGTH_SHORT).show();
                 db.reset();
-                ContactsFragment.instance.refreshData();
+                ContactsFragment.instance.newrefreshData();
                 return true;
 
             case R.id.download:
                 Log.d("Greg", "download button triggers");
-                download();
+                db.reset();
+
+                for(Contacts c:cloud)
+                {
+                    db.insert(c);
+                }
+
+                ContactsFragment.instance.newrefreshData();
+                Toast.makeText(this, "Synced from the Cloud!", Toast.LENGTH_LONG).show();
+
+
+//                download();
                 return true;
 
             case R.id.upload:
                 Log.d("Greg", "upload button triggers");
-                upload();
+                cloud = db.getAllData();
+                Toast.makeText(this, "Uploaded to the Cloud!", Toast.LENGTH_LONG).show();
+
+//                upload();
+
                 return true;
             default:
                 break;
@@ -283,12 +324,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent Intent_data) {
-        ContactsFragment.instance.refreshData();
-
         switch (resultCode) {
             //  从AddNewContact.java接受回来的数据
             case (ADD_CONTACT_RESULT_CODE): {
                 super.onActivityResult(requestCode, resultCode, Intent_data);
+                Log.d("onActivityResult","run");
+                ContactsFragment.instance.newrefreshData();
+                break;
+            }
+            case (UPDATE_CONTACT_RESULT_CODE): {
+                super.onActivityResult(requestCode, resultCode, Intent_data);
+                Log.d("onActivityResult","run");
                 ContactsFragment.instance.refreshData();
                 break;
             }
@@ -305,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-
+        preload();
         Toast.makeText(MainActivity.this, "Login succeeds!", Toast.LENGTH_LONG).show();
 
 

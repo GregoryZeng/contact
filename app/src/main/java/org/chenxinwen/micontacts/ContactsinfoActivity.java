@@ -1,10 +1,9 @@
 package org.chenxinwen.micontacts;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -13,18 +12,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import org.chenxinwen.micontacts.bean.Contacts;
 import org.chenxinwen.micontacts.bean.RecordEntity;
@@ -43,7 +50,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ContactsinfoActivity extends AppCompatActivity {
 
@@ -60,8 +69,26 @@ public class ContactsinfoActivity extends AppCompatActivity {
     private int id = 0;
     final int UPDATE_LOCATION = 0;
     final int UPDATE_WEATHER = 1;
-
+    private boolean isRefresh =false;
     private String cityText = "";
+    private static final int RESULT_TAG_CODE = 3;
+
+
+
+
+
+    // tag
+
+    private FlowLayout flowLayout;//上面的flowLayout
+    private TagFlowLayout allFlowLayout;//所有标签的TagFlowLayout
+    private List<String> label_list = new ArrayList<>();//上面的标签列表
+    private List<String> all_label_List = new ArrayList<>();//所有标签列表
+    final List<TextView> labels = new ArrayList<>();//存放标签
+    final List<Boolean> labelStates = new ArrayList<>();//存放标签状态
+    final Set<Integer> set = new HashSet<>();//存放选中的
+    private TagAdapter<String> tagAdapter;//标签适配器
+    private LinearLayout.LayoutParams params;
+    private EditText editText;
 
     private String getStringFromInputStream(InputStream is) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -189,6 +216,11 @@ public class ContactsinfoActivity extends AppCompatActivity {
         kjb.displayWithLoadBitmap(image, curr_contact.getUrl(), R.drawable.default_head_rect);
         phone_tv.setText(curr_contact.getNumber().toString());
         email_tv.setText(curr_contact.getEmail());
+        //更新tag
+        flowLayout.removeAllViews();
+        initView();
+        initData();
+        isRefresh = true;
     }
 
 
@@ -278,7 +310,6 @@ public class ContactsinfoActivity extends AppCompatActivity {
                 Intent intent = new Intent(ContactsinfoActivity.this, EditContactsinfoActivity.class);
                 intent.putExtra("id", curr_contact.getId());
                 startActivityForResult(intent, 1);
-//                ContactsFragment.instance.refreshData();
             }
 
         });
@@ -291,17 +322,28 @@ public class ContactsinfoActivity extends AppCompatActivity {
 //            }
 //
 //        });
+
+
+
+        //tag
+
+        initView();
+        initData();
     }
 
     @Override
     public void finish() {
-        Intent intent = new Intent();
-        setResult(ADD_CONTACT_RESULT_CODE, intent);
+        if(isRefresh) {
+            Intent intent = new Intent();
+            setResult(UPDATE_CONTACT_RESULT_CODE, intent);
+        }
         super.finish();
 
     }
 
     private static final int ADD_CONTACT_RESULT_CODE = 1;
+    private static final int UPDATE_CONTACT_RESULT_CODE = 2;
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent Intent_data) {
@@ -309,7 +351,16 @@ public class ContactsinfoActivity extends AppCompatActivity {
             //  从AddNewContact.java接受回来的数据
             case (ADD_CONTACT_RESULT_CODE): {
                 super.onActivityResult(requestCode, resultCode, Intent_data);
-                // ContactsFragment.instance.refreshData();
+                refresh();
+                break;
+            }
+            case(RESULT_TAG_CODE):
+            {
+                super.onActivityResult(requestCode, resultCode, Intent_data);
+                ArrayList<String> tempTag = new ArrayList<>();
+                tempTag = Intent_data.getStringArrayListExtra("label_list");
+                curr_contact.setTag(tempTag);
+                db.update(curr_contact);
                 refresh();
                 break;
             }
@@ -335,9 +386,12 @@ public class ContactsinfoActivity extends AppCompatActivity {
             case R.id.action_freelist:
                 Toast.makeText(ContactsinfoActivity.this, "Removed from Blacklist", Toast.LENGTH_SHORT).show();
                 return true;
-            case R.id.action_addtag:
-                //TODO
+            case R.id.action_addtag: {
+                Intent intent = new Intent(ContactsinfoActivity.this, AddTag.class);
+                intent.putStringArrayListExtra("label_list",curr_contact.getTag());
+                startActivityForResult(intent, 0);
                 return true;
+            }
             case R.id.action_SMS: {
                 Intent intent = new Intent(ContactsinfoActivity.this, ComfortMsgActivity.class);
                 intent.putExtra("phone", curr_contact.getNumber());
@@ -365,5 +419,95 @@ public class ContactsinfoActivity extends AppCompatActivity {
 //        updateBackground((FloatingActionButton) findViewById(R.id.fab), palette);
 //        supportStartPostponedEnterTransition();
 //    }
+
+    //  tag
+    private void initView() {
+        //flowLayout.removeAllViews();
+        flowLayout = (FlowLayout) findViewById(R.id.id_flowlayout);
+        // allFlowLayout = (TagFlowLayout) findViewById(R.id.id_flowlayout_two);
+        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(20, 20, 20, 20);
+        flowLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String editTextContent = editText.getText().toString();
+                if (TextUtils.isEmpty(editTextContent)) {
+                    //tagNormal();
+                } else {
+                    addLabel(editText);
+                }
+            }
+        });
+    }
+    /**
+     * 初始化数据
+     */
+    private void initData(){
+        //初始化上面标签
+        label_list.clear();
+        labels.clear();
+        labelStates.clear();
+        for (String tag : curr_contact.getTag()) {
+            label_list.add(tag);
+        }
+
+
+
+        for (int i = 0; i < label_list.size() ; i++) {
+            editText = new EditText(getApplicationContext());//new 一个EditText
+            editText.setText(label_list.get(i));
+            addLabel(editText);//添加标签
+        }
+
+    }
+
+
+    /**
+     * 初始化所有标签列表
+     */
+
+
+    /**
+     * 添加标签
+     * @param editText
+     * @return
+     */
+    private boolean addLabel(EditText editText) {
+        String editTextContent = editText.getText().toString();
+        //判断输入是否为空
+        if (editTextContent.equals(""))
+            return true;
+        //判断是否重复
+        for (TextView tag : labels) {
+            String tempStr = tag.getText().toString();
+            if (tempStr.equals(editTextContent)) {
+                editText.setText("");
+                editText.requestFocus();
+                return true;
+            }
+        }
+        //添加标签
+        final TextView temp = getTag(editText.getText().toString());
+        labels.add(temp);
+        labelStates.add(false);
+        flowLayout.addView(temp);
+        //让输入框在最后一个位置上
+        editText.bringToFront();
+        //清空编辑框
+        editText.setText("");
+        editText.requestFocus();
+        return true;
+
+    }
+    private TextView getTag(String label) {
+        TextView textView = new TextView(getApplicationContext());
+        textView.setTextSize(12);
+        textView.setBackgroundResource(R.drawable.label_normal);
+        textView.setTextColor(Color.parseColor("#00aa00"));
+        textView.setText(label);
+        textView.setLayoutParams(params);
+        return textView;
+    }
+
 }
 

@@ -1,5 +1,7 @@
 package org.chenxinwen.micontacts.bean;
 
+import java.util.ArrayList;
+
 /**
  * Created by chenxinwen on 16/8/9.11:02.
  * Email:191205292@qq.com
@@ -14,7 +16,7 @@ public class Contacts implements Comparable<Contacts> {
     private String pinyin;
     private String number="";
     private String email ="";
-    private String tag ="";
+    private ArrayList<String> tag =new ArrayList<String>();;
     private int blackList = 0;
     private char firstChar;
     public Contacts()
@@ -26,16 +28,16 @@ public class Contacts implements Comparable<Contacts> {
         pinyin = "";
         number = " ";
         email =" ";
-        tag =" ";
+        tag =new ArrayList<String>();;
         blackList = 0;
         firstChar = '#';
     }
     public String getEmail(){return email;}
-    public String getTag(){return tag;}
+    public ArrayList<String> getTag(){return tag;}
     public int getBlackList(){return blackList;}
 
     public  void setEmail(String email){this.email = email;}
-    public  void setTag(String tag){this.tag = tag;}
+    public  void setTag(ArrayList<String> tag){this.tag = tag;}
     public  void setBlackList(int blackList){this.blackList = blackList;}
 
 

@@ -35,9 +35,13 @@
             android:name=".AddNewContact"
             android:label="@string/add_contact_label" />
         <activity
+            android:name=".AddTag"
+            android:label="添加标签"/>
+        <activity
             android:name=".ContactsinfoActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".call_cluster" />
+        <activity android:name=".call_cluster"
+            android:label="历史通话记录"/>
         <activity
             android:name=".EditContactsinfoActivity"
             android:label="编辑联系人"
